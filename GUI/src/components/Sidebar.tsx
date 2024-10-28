@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import './Sidebar.scss';
+import './Sidebar.css';
 
 const sidebarNavItems = [
-  { display: 'Home', icon: <i className='bx bx-home'></i>, to: '/', section: '' },
-  { display: 'About', icon: <i className='bx bx-info-circle'></i>, to: '/about', section: 'about' },
-  { display: 'Services', icon: <i className='bx bx-cog'></i>, to: '/services', section: 'services' },
-  { display: 'Contact', icon: <i className='bx bx-envelope'></i>, to: '/contact', section: 'contact' },
+  { display: 'Trenings', icon: <i className='bx bx-info-circle'></i>, to: '/trenings', section: 'about' },
+  { display: 'Weights', icon: <i className='bx bx-cog'></i>, to: '/weights', section: 'services' },
+  { display: 'About', icon: <i className='bx bx-envelope'></i>, to: '/about', section: 'contact' },
 ];
 
 const Sidebar: React.FC = () => {
