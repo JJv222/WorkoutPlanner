@@ -2,7 +2,7 @@ package com.JJv222.WorkoutPlannerBackend.Tables.Entities;
 
 import jakarta.persistence.*;
 
-@Entity
+@Entity(name = "exercise_trening")
 public class ExerciseTrening {
     @Id
     @Column(name = "id")

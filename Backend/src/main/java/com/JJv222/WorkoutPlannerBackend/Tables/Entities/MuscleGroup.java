@@ -2,10 +2,8 @@ package com.JJv222.WorkoutPlannerBackend.Tables.Entities;
 
 import jakarta.persistence.*;
 
-import java.util.Set;
-
-@Entity(name = "exercise")
-public class Exercise {
+@Entity(name = "muscle_group")
+public class MuscleGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -16,27 +14,6 @@ public class Exercise {
 
     @Column(name = "description")
     private String description;
-
-    @ManyToOne
-    @JoinColumn(name = "muscle_group_id")
-    private MuscleGroup muscleGroup;
-
-    @Override
-    public String toString() {
-        return "Exercise{" +
-                "id=" + id +
-                ", name=" + name +
-                ", description=" + description +
-                '}';
-    }
-
-    public void setMuscleGroup(MuscleGroup muscleGroup) {
-        this.muscleGroup = muscleGroup;
-    }
-
-    public MuscleGroup getMuscleGroup() {
-        return muscleGroup;
-    }
 
     public void setId(Integer id) {
         this.id = id;
