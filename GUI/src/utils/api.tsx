@@ -9,3 +9,13 @@ export async function fetchData(expointUrl: string, params = {}) {
     throw error;
   }
 }
+
+export async function postData(expointUrl: string, data = {}) {
+  try {
+    const response = await axios.post(expointUrl, data);
+    return response.data;
+  } catch (error) {
+    console.error("Error posting data:", error);
+    throw error;
+  }
+}

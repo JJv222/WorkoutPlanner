@@ -3,7 +3,7 @@ package com.JJv222.WorkoutPlannerBackend.Tables.Entities;
 import jakarta.persistence.*;
 
 @Entity(name = "exercise_trening")
-public class ExerciseTrening {
+public final class ExerciseTrening {
     @Id
     @Column(name = "id")
     private Long id;

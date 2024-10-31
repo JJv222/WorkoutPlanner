@@ -1,9 +1,14 @@
 package com.JJv222.WorkoutPlannerBackend.Tables.Pojo;
 
-public class ExercisePojo {
+public class ExercisePostPojo {
+    private Integer id ;
     private String exerciseName;
     private String muscleGroupName;
     private String description;
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public void setExerciseName(String exerciseName) {
         this.exerciseName = exerciseName;
@@ -15,6 +20,10 @@ public class ExercisePojo {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     public String getExerciseName() {

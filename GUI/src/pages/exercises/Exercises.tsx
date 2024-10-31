@@ -1,10 +1,11 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
-import { Table } from "flowbite-react";
+import { Table, Modal, Button, TextInput } from "flowbite-react";
 import { IExercise } from "../../utils/types";
-import { API_GET_EXERCISES } from "../../utils/api_constants";
-import { fetchData } from "../../utils/api";
+import {
+  API_GET_EXERCISES,
+  API_POST_EXERCISE,
+} from "../../utils/api_constants";
+import { fetchData, postData } from "../../utils/api";
 
 const Exercises: React.FC = () => {
   const DESCRIPTION_MAX_LENGTH = 50;
@@ -12,7 +13,14 @@ const Exercises: React.FC = () => {
   const [data, setData] = useState<IExercise[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(10); // Default items per page
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [newExercise, setNewExercise] = useState<IExercise>({
+    id: 0,
+    exerciseName: "",
+    muscleGroupName: "",
+    description: "",
+  });
 
   useEffect(() => {
     const getData = async () => {
@@ -27,6 +35,23 @@ const Exercises: React.FC = () => {
     getData();
   }, []);
 
+  const handleAddExercise = async () => {
+    try {
+      await postData(API_POST_EXERCISE, newExercise);
+      setModalOpen(false);
+      setNewExercise({
+        id: 0,
+        exerciseName: "",
+        muscleGroupName: "",
+        description: "",
+      });
+      const fetchedData = await fetchData(API_GET_EXERCISES, {});
+      setData(fetchedData);
+    } catch (error) {
+      console.error("Failed to add exercise:", error);
+    }
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -35,15 +60,13 @@ const Exercises: React.FC = () => {
     event: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setItemsPerPage(Number(event.target.value));
-    setCurrentPage(1); // Reset to first page when items per page changes
+    setCurrentPage(1); // Reset to first page when items per page change
   };
 
   const paginatedData = data.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
-
-  // Calculate total pages
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -53,34 +76,81 @@ const Exercises: React.FC = () => {
         Exercises
       </h1>
       <p className="mb-4 text-gray-700 dark:text-gray-300">
-        The page shows the exercises in your database
+        The page shows your exercise records
       </p>
+      <Button onClick={() => setModalOpen(true)} className="mb-4">
+        Add Exercise
+      </Button>
 
-      <div className="mb-4">
-        <label className="mr-2 text-gray-700 dark:text-gray-300">
-          Items per page:
-        </label>
-        <select
-          value={itemsPerPage}
-          onChange={handleItemsPerPageChange}
-          className="rounded-md border border-gray-300 p-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-        >
-          {[10, 20, 30, 50].map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Modal show={modalOpen} onClose={() => setModalOpen(false)}>
+        <Modal.Header>Add Exercise</Modal.Header>
+        <Modal.Body>
+          <div className="flex flex-col gap-4">
+            <TextInput
+              type="text"
+              placeholder="Exercise Name"
+              value={newExercise.exerciseName}
+              onChange={(e) =>
+                setNewExercise({ ...newExercise, exerciseName: e.target.value })
+              }
+              required
+            />
+            <TextInput
+              type="text"
+              placeholder="Muscle Group Name"
+              value={newExercise.muscleGroupName}
+              onChange={(e) =>
+                setNewExercise({
+                  ...newExercise,
+                  muscleGroupName: e.target.value,
+                })
+              }
+              required
+            />
+            <TextInput
+              type="text"
+              maxLength={DESCRIPTION_MAX_LENGTH}
+              placeholder="Description"
+              value={newExercise.description}
+              onChange={(e) =>
+                setNewExercise({ ...newExercise, description: e.target.value })
+              }
+              required
+            />
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={handleAddExercise}>Submit</Button>
+          <Button color="gray" onClick={() => setModalOpen(false)}>
+            Cancel
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {loading ? (
         <p className="mb-4 text-gray-700 dark:text-gray-300">Loading...</p>
       ) : (
         <>
-          <ExerciseTable
-            data={paginatedData}
-            maxDescriptionSize={DESCRIPTION_MAX_LENGTH}
-          />
+          <div className="mb-4">
+            <label
+              htmlFor="items-per-page"
+              className="mr-2 text-gray-700 dark:text-gray-300"
+            >
+              Items per page:
+            </label>
+            <select
+              id="items-per-page"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="rounded-md border"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+          <ExerciseTable data={paginatedData} />
           <div className="mt-4">
             <span className="mr-2 text-gray-700 dark:text-gray-300">
               Pages:
@@ -101,10 +171,7 @@ const Exercises: React.FC = () => {
   );
 };
 
-const ExerciseTable: React.FC<{
-  data: IExercise[];
-  maxDescriptionSize: number;
-}> = ({ data, maxDescriptionSize }) => {
+const ExerciseTable: React.FC<{ data: IExercise[] }> = ({ data }) => {
   return (
     <div className="overflow-x-auto">
       <Table
@@ -113,41 +180,30 @@ const ExerciseTable: React.FC<{
         className="rounded-lg border-none dark:bg-gray-800"
       >
         <Table.Head>
-          <Table.HeadCell className="px-6 py-4 text-lg">Name</Table.HeadCell>
+          <Table.HeadCell className="px-6 py-4 text-lg">
+            Exercise
+          </Table.HeadCell>
           <Table.HeadCell className="px-6 py-4 text-lg">
             Muscle Group
           </Table.HeadCell>
           <Table.HeadCell className="px-6 py-4 text-lg">
             Description
           </Table.HeadCell>
-          <Table.HeadCell className="px-6 py-4 text-lg">
-            <span className="sr-only">Edit</span>
-          </Table.HeadCell>
         </Table.Head>
         <Table.Body className="divide-y">
-          {data.map((entry, index) => (
+          {data.map((entry) => (
             <Table.Row
-              key={index}
+              key={entry.id}
               className="bg-white dark:border-gray-700 dark:bg-gray-800"
             >
-              <Table.Cell className="whitespace-nowrap px-6 py-6 font-medium text-gray-900 dark:text-white">
+              <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
                 {entry.exerciseName}
               </Table.Cell>
               <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
                 {entry.muscleGroupName}
               </Table.Cell>
-              <Table.Cell className="whitespace-nowrap px-32 py-4 font-medium text-gray-900 dark:text-white">
-                {entry.description.length < maxDescriptionSize
-                  ? entry.description
-                  : entry.description.substring(0, maxDescriptionSize) + "..."}
-              </Table.Cell>
-              <Table.Cell className="whitespace-nowrap px-6 py-4">
-                <a
-                  href="#"
-                  className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                >
-                  Edit
-                </a>
+              <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
+                {entry.description}
               </Table.Cell>
             </Table.Row>
           ))}

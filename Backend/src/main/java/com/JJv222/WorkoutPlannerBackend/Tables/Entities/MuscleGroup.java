@@ -3,7 +3,7 @@ package com.JJv222.WorkoutPlannerBackend.Tables.Entities;
 import jakarta.persistence.*;
 
 @Entity(name = "muscle_group")
-public class MuscleGroup {
+public final class MuscleGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
