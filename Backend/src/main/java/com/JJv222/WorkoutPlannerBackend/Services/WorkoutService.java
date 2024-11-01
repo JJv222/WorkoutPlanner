@@ -2,10 +2,13 @@ package com.JJv222.WorkoutPlannerBackend.Services;
 
 import com.JJv222.WorkoutPlannerBackend.Repositories.*;
 import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Exercise;
+import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Trening;
 import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Weight;
-import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.ExerciseGetPojo;
-import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.ExercisePostPojo;
-import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.WeightPostPojo;
+import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExerciseGetPojo;
+import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExercisePostPojo;
+import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Trening.TreningGetTablePojo;
+import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Trening.TreningPostPojo;
+import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Weight.WeightPostPojo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,5 +71,26 @@ public final class WorkoutService {
             return "Weight added";
         }
         return "Error accured during adding weight [500]";
+    }
+
+    public List<TreningGetTablePojo> getTrenings(){
+        final Iterable<Trening> treings = treningRepository.findAll();
+        final List<TreningGetTablePojo> result = new ArrayList<>();
+
+        treings.forEach(x->{
+            final TreningGetTablePojo pojo = new TreningGetTablePojo();
+            pojo.setId(x.getId());
+            pojo.setDate(x.getDate());
+        });
+        return result;
+    }
+
+    public String addTrening(final TreningPostPojo trening){
+        final Trening treningEntity = new Trening();
+      //  treningEntity.setDate(trening.getDate());
+      //  treningEntity.setSeriesBreak(trening.getSeriesBreak());
+
+
+        return "Trening added";
     }
 }

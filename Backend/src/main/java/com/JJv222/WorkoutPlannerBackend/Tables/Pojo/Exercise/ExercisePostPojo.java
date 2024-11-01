@@ -1,4 +1,4 @@
-package com.JJv222.WorkoutPlannerBackend.Tables.Pojo;
+package com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise;
 
 public class ExercisePostPojo {
     private Integer id ;

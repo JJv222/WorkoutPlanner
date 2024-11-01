@@ -11,7 +11,7 @@ public final class Trening{
     @Column(name = "id")
     private Integer id;
 
-    @Column(unique = true, name = "name")
+    @Column(name = "name")
     private String name;
 
     @Column(name = "description")
@@ -20,6 +20,9 @@ public final class Trening{
     @Column(name = "date")
     private Date date;
 
+    @Column(name = "Series_break")
+    private Integer SeriesBreak;
+
     @Override
     public String toString() {
         return "Trening{" +
@@ -27,6 +30,7 @@ public final class Trening{
                 ", name=" + name +
                 ", description=" + description +
                 ", date=" + date +
+                ", breakTime=" + SeriesBreak +
                 '}';
     }
 
@@ -42,8 +46,21 @@ public final class Trening{
         this.description = description;
     }
 
+    public void setDate(String date) {
+        if(date.matches("\\d{4}-\\d{2}-\\d{2}"))
+        this.date = Date.valueOf(date);
+    }
+
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public void setSeriesBreak(Integer breakTime) {
+        this.SeriesBreak = breakTime;
+    }
+
+    public Integer getSeriesBreak() {
+        return SeriesBreak;
     }
 
     public Integer getId() {

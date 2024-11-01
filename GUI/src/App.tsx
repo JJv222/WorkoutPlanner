@@ -9,8 +9,13 @@ import {
   ScaleIcon,
   CogIcon,
   UserIcon,
+  TableCellsIcon,
+  QueueListIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
 import Exercises from "./pages/exercises/Exercises";
+import Trenings from "./pages/trenings/Trenings";
+import AddTrening from "./pages/trenings/AddTrening";
 
 function App() {
   return (
@@ -24,13 +29,13 @@ function App() {
                 <Sidebar.Item href="/" icon={HomeIcon}>
                   Home
                 </Sidebar.Item>
-                <Sidebar.Item href="/trenings" icon={ScaleIcon}>
+                <Sidebar.Item href="/trenings" icon={ComputerDesktopIcon}>
                   Trenings
                 </Sidebar.Item>
-                <Sidebar.Item href="/weights" icon={CogIcon}>
+                <Sidebar.Item href="/weights" icon={ScaleIcon}>
                   Weights
                 </Sidebar.Item>
-                <Sidebar.Item href="/exercises" icon={UserIcon}>
+                <Sidebar.Item href="/exercises" icon={QueueListIcon}>
                   Exercises
                 </Sidebar.Item>
               </Sidebar.ItemGroup>
@@ -43,8 +48,10 @@ function App() {
           <DarkThemeToggle />
 
           <Routes>
+            <Route path="/trenings" element={<Trenings />} />
             <Route path="/weights" element={<Weights />} />
             <Route path="/exercises" element={<Exercises />} />
+            <Route path="/add-trening" element={<AddTrening />} />
           </Routes>
           <MyFooter />
         </main>
