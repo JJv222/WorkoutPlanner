@@ -2,10 +2,12 @@ package com.JJv222.WorkoutPlannerBackend.Services;
 
 import com.JJv222.WorkoutPlannerBackend.Repositories.*;
 import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Exercise;
+import com.JJv222.WorkoutPlannerBackend.Tables.Entities.ExerciseTrening;
 import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Trening;
 import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Weight;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExerciseGetPojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExercisePostPojo;
+import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExerciseTreningAddPojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Trening.TreningGetTablePojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Trening.TreningPostPojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Weight.WeightPostPojo;
@@ -73,22 +75,56 @@ public final class WorkoutService {
         return "Error accured during adding weight [500]";
     }
 
-    public List<TreningGetTablePojo> getTrenings(){
-        final Iterable<Trening> treings = treningRepository.findAll();
-        final List<TreningGetTablePojo> result = new ArrayList<>();
 
-        treings.forEach(x->{
-            final TreningGetTablePojo pojo = new TreningGetTablePojo();
+    public List<TreningPostPojo> getTrenings() {
+        final Iterable<Trening> treings = treningRepository.findAll();
+        final List<TreningPostPojo> result = new ArrayList<>();
+
+        treings.forEach(x -> {
+            final TreningPostPojo pojo = new TreningPostPojo();
+            pojo.setDate(x.getDate().toString());
+            pojo.setSeriesBreak(x.getSeriesBreak());
+            pojo.setComment(x.getComment());
             pojo.setId(x.getId());
-            pojo.setDate(x.getDate());
+
+            final List<ExerciseTrening> exerciseTrening = exerciseTreningRepository.findAllByTrening(x);
+            final List<ExerciseTreningAddPojo> exercises = new ArrayList<>();
+
+            exerciseTrening.forEach(z -> {
+                final ExerciseTreningAddPojo temp = new ExerciseTreningAddPojo();
+                temp.setExerciseName(z.getExercise().getName());
+                temp.setBreakTime(z.getBreakTime());
+                temp.setReps(z.getRepetitions());
+                temp.setSeries(z.getSeries());
+                exercises.add(temp);
+            });
+
+            pojo.setExercises(exercises);
+
+            result.add(pojo);
         });
+
         return result;
     }
 
-    public String addTrening(final TreningPostPojo trening){
+
+    public String addTrening(final TreningPostPojo trening) {
         final Trening treningEntity = new Trening();
-      //  treningEntity.setDate(trening.getDate());
-      //  treningEntity.setSeriesBreak(trening.getSeriesBreak());
+        treningEntity.setDate(trening.getDate());
+        treningEntity.setSeriesBreak(trening.getSeriesBreak());
+        treningEntity.setComment(trening.getComment());
+        treningRepository.save(treningEntity);
+
+        trening.getExercises().forEach(x -> {
+            final Exercise exercise = exerciseRepository.findByName(x.getExerciseName());
+            final ExerciseTrening exerciseTrening = new ExerciseTrening();
+            exerciseTrening.setExercise(exercise);
+            exerciseTrening.setTrening(treningEntity);
+            exerciseTrening.setSeries(x.getSeries());
+            exerciseTrening.setRepetitions(x.getReps());
+            exerciseTrening.setBreakTime(x.getBreakTime());
+            exerciseTreningRepository.save(exerciseTrening);
+        });
 
 
         return "Trening added";

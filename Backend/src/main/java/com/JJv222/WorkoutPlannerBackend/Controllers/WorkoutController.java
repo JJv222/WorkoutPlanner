@@ -45,7 +45,7 @@ public class WorkoutController {
     }
 
     @GetMapping(path = "/trenings")
-    public @ResponseBody List<TreningGetTablePojo> getTrenings() {
+    public @ResponseBody List<TreningPostPojo> getTrenings() {
         return service.getTrenings();
     }
 

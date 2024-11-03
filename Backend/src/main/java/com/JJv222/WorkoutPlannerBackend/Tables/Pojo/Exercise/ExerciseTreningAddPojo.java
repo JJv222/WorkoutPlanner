@@ -1,13 +1,13 @@
 package com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise;
 
 public class ExerciseTreningAddPojo {
-    private Integer id;
+    private String exerciseName;
     private Integer series;
     private Integer reps;
     private Integer breakTime;
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setExerciseName(String exerciseName) {
+        this.exerciseName = exerciseName;
     }
 
     public void setSeries(Integer series) {
@@ -22,8 +22,8 @@ public class ExerciseTreningAddPojo {
         this.breakTime = breakTime;
     }
 
-    public Integer getId() {
-        return id;
+    public String getExerciseName() {
+        return exerciseName;
     }
 
     public Integer getSeries() {
