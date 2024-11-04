@@ -213,15 +213,15 @@ const AddTrening: React.FC = () => {
       <form>
         <Datepicker
           required
-          value={treningDate}
-          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-            setTreningDate(event.target.value.toString())
-          }
-          onSelectedDateChanged={(date: Date) =>
-            setTreningDate(date.toISOString().split("T")[0])
-          }
+          value={new Date(treningDate)}
+          onChange={(date: Date | null) => {
+            if (date) {
+              setTreningDate(date.toISOString().split("T")[0]);
+            }
+          }}
           className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         />
+
         <label
           htmlFor="seriesBreak"
           className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
