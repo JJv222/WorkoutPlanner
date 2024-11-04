@@ -13,6 +13,14 @@ const Trenings: React.FC = () => {
   );
   const [loading, setLoading] = useState<boolean>(true);
 
+  const handleAddTrening = () => {
+    navigate("/add-trening", { state: { isEdit: false } });
+  };
+
+  const handleEditTrening = (id: number) => {
+    navigate("/add-trening", { state: { isEdit: true, treningId: id } });
+  };
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -47,7 +55,7 @@ const Trenings: React.FC = () => {
         Trenings
       </h1>
       <div>
-        <Button onClick={() => navigate("/add-trening")}>
+        <Button onClick={handleAddTrening} className="mb-4 p-2">
           Add new Trening record
         </Button>
       </div>
@@ -59,6 +67,7 @@ const Trenings: React.FC = () => {
           data={data}
           groupData={groupData}
           groupedData={groupedData}
+          handleEditTrening={handleEditTrening}
         />
       )}
     </div>
@@ -69,18 +78,20 @@ interface ExerciseTableProps {
   data: ITreningAdd[];
   groupData: (id: number) => void;
   groupedData: Map<string, IExerciseAdd[]>;
+  handleEditTrening: (id: number) => void;
 }
 
 const ExerciseTable: React.FC<ExerciseTableProps> = ({
   data,
   groupData,
   groupedData,
+  handleEditTrening,
 }) => {
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
   const toggleRow = (id: number) => {
     if (expandedRowId !== id) {
-      groupData(id); // Call groupData with the selected training ID to fetch the exercises
+      groupData(id);
     }
     setExpandedRowId(expandedRowId === id ? null : id);
   };
@@ -112,9 +123,12 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                   {entry.date}
                 </Table.Cell>
                 <Table.Cell className="whitespace-nowrap px-6 py-4">
-                  {expandedRowId === entry.id
-                    ? "Hide Exercises"
-                    : "Show Exercises"}
+                  <Button
+                    onClick={() => handleEditTrening(entry.id)}
+                    className="flex w-40 items-center justify-center text-center"
+                  >
+                    Copy
+                  </Button>
                 </Table.Cell>
               </Table.Row>
 
@@ -123,7 +137,6 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                 <Table.Row>
                   <Table.Cell colSpan={3} className="p-4">
                     <div className="overflow-x-auto">
-                      {/* Render exercises grouped by series */}
                       {Array.from(groupedData.entries()).map(
                         ([series, exercises], index) => (
                           <div key={index} className="mb-4">
@@ -135,6 +148,7 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                 <Table.HeadCell>Name</Table.HeadCell>
                                 <Table.HeadCell>Repetitions</Table.HeadCell>
                                 <Table.HeadCell>Break Time (s)</Table.HeadCell>
+                                <Table.HeadCell>Actions</Table.HeadCell>
                               </Table.Head>
                               <Table.Body>
                                 {exercises.map((exercise, i) => (
@@ -147,7 +161,8 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                     </Table.Cell>
                                     <Table.Cell>{exercise.reps}</Table.Cell>
                                     <Table.Cell>
-                                      {exercise.breakTime}
+                                      {" "}
+                                      {exercise.breakTime}{" "}
                                     </Table.Cell>
                                   </Table.Row>
                                 ))}

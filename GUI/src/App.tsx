@@ -2,14 +2,11 @@ import React from "react";
 import Weights from "./pages/weights/Weights";
 import MyFooter from "./pages/footer/MyFooter";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { DarkThemeToggle, Footer } from "flowbite-react";
+import { DarkThemeToggle } from "flowbite-react";
 import { Sidebar } from "flowbite-react";
 import {
   HomeIcon,
   ScaleIcon,
-  CogIcon,
-  UserIcon,
-  TableCellsIcon,
   QueueListIcon,
   ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";

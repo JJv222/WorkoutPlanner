@@ -1,15 +1,14 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { TextInput, Button, Select, Modal } from "flowbite-react";
-import { IExercise, ITreningAdd, IExerciseAdd } from "../../utils/types";
-import { API_ADD_TRENING, API_GET_EXERCISES } from "../../utils/api_constants";
+import { IExercise, IExerciseAdd, ITreningAdd } from "../../utils/types";
+import {
+  API_ADD_TRENING,
+  API_GET_EXERCISES,
+  API_GET_TRENING,
+} from "../../utils/api_constants";
 import { fetchData, postData } from "../../utils/api";
 import { Datepicker } from "flowbite-react";
-import {
-  Navigate,
-  useLocation,
-  useNavigate,
-  useNavigation,
-} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const AddTrening: React.FC = () => {
   const [exercises, setExercises] = useState<IExercise[]>([]);
@@ -26,9 +25,13 @@ const AddTrening: React.FC = () => {
     reps: 0,
     breakTime: 0,
   });
-  const [exerciseAdded, setExerciseAdded] = useState<IExerciseAdd[][]>([]); // Array to store exercises per series
-  const [exerciseAll, setExerciseAll] = useState<IExerciseAdd[]>([]); // Array to store all exercises
+  const [exerciseAdded, setExerciseAdded] = useState<IExerciseAdd[][]>([]);
+  const [exerciseAll, setExerciseAll] = useState<IExerciseAdd[]>([]);
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const isEdit = location.state?.isEdit || false;
+  const treningId = location.state?.treningId || null;
 
   useEffect(() => {
     const getExercises = async () => {
@@ -40,7 +43,41 @@ const AddTrening: React.FC = () => {
       }
     };
     getExercises();
-  }, []);
+
+    if (isEdit) {
+      fetchTreningData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, treningId]);
+
+  const fetchTreningData = async () => {
+    const uri = `${API_GET_TRENING}/${treningId}`;
+    try {
+      const fetchedTrening: ITreningAdd = await fetchData(uri, {});
+      setTreningDate(fetchedTrening.date);
+      setSeriesBreak(fetchedTrening.seriesBreak);
+      setExerciseAll(fetchedTrening.exercises);
+
+      const maxSeries = fetchedTrening.exercises.reduce((prev, current) => {
+        return prev.series > current.series ? prev : current;
+      }).series;
+      setSeriesAmmount(maxSeries);
+
+      const groupedExercises: IExerciseAdd[][] = [];
+      fetchedTrening.exercises.forEach((exercise) => {
+        const seriesIndex = exercise.series - 1;
+
+        if (!groupedExercises[seriesIndex]) {
+          groupedExercises[seriesIndex] = [];
+        }
+
+        groupedExercises[seriesIndex].push(exercise);
+      });
+      setExerciseAdded(groupedExercises);
+    } catch (e) {
+      console.error("Error fetching trening data:", e);
+    }
+  };
 
   const openModal = (seriesNumber: number) => {
     setCurrentSeries(seriesNumber);
@@ -61,8 +98,6 @@ const AddTrening: React.FC = () => {
 
   const addExerciseToSeries = () => {
     if (!currentSeries) return;
-
-    // Ustawiamy numer serii w exerciseDetails
     const exerciseWithSeries = { ...exerciseDetails, series: currentSeries };
 
     setExerciseAdded((prev) => {
@@ -74,7 +109,6 @@ const AddTrening: React.FC = () => {
       return updatedExercises;
     });
 
-    // Resetujemy exerciseDetails po dodaniu
     setExerciseDetails({
       exerciseName: "",
       series: 0,
@@ -86,7 +120,6 @@ const AddTrening: React.FC = () => {
   const saveAllExercises = () => {
     if (!currentSeries) return;
 
-    // Dodajemy wszystkie ćwiczenia z aktualnej serii do exerciseAll
     setExerciseAll((prev) => [
       ...prev,
       ...(exerciseAdded[currentSeries - 1] || []),
@@ -112,19 +145,20 @@ const AddTrening: React.FC = () => {
     closeModal();
   };
 
-  const SaveTraining = () => {
+  const SaveTraining = async () => {
     const newTraining = {
       date: treningDate,
       seriesBreak: seriesBreak,
+      seriesAmount: seriesAmmount,
       exercises: exerciseAll,
     };
-    console.log(newTraining);
+
     try {
-      postData(API_ADD_TRENING, newTraining);
+      await postData(API_ADD_TRENING, newTraining);
     } catch (error) {
-      console.error("Failed to add training:", error);
+      console.error("Failed to save training:", error);
     }
-    console.log(treningDate);
+
     navigate("/trenings");
   };
 
@@ -174,11 +208,12 @@ const AddTrening: React.FC = () => {
   return (
     <div className="container mx-auto bg-white p-6 shadow-lg dark:bg-gray-800">
       <h1 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
-        Add new Trening
+        {isEdit ? "Edit Trening" : "Add new Trening"}
       </h1>
       <form>
         <Datepicker
           required
+          value={treningDate}
           onChange={(event: ChangeEvent<HTMLInputElement>) =>
             setTreningDate(event.target.value.toString())
           }
@@ -196,6 +231,7 @@ const AddTrening: React.FC = () => {
         <input
           type="number"
           id="seriesBreak"
+          value={seriesBreak}
           className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           required
           onChange={(e) => setSeriesBreak(Number(e.target.value))}
@@ -209,6 +245,7 @@ const AddTrening: React.FC = () => {
         <input
           type="number"
           id="seriesAmmount"
+          value={seriesAmmount}
           className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           required
           onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -223,20 +260,19 @@ const AddTrening: React.FC = () => {
           type="submit"
           onClick={SaveTraining}
         >
-          Save
+          "Save Training"
         </Button>
       </form>
-
-      {/* Modal for adding exercise details */}
       <Modal show={isModalOpen} onClose={closeModal}>
-        <Modal.Header>Add Details for Series {currentSeries}</Modal.Header>
+        <Modal.Header>Add Exercise to Series {currentSeries}</Modal.Header>
         <Modal.Body>
           <Select
             name="exerciseName"
-            value={exerciseDetails.exerciseName} // Dodajemy `value`
+            value={exerciseDetails.exerciseName}
             onChange={handleExerciseChange}
+            className="block w-full"
           >
-            <option value="">Select Exercise</option>
+            <option value="">Select an exercise</option>
             {exercises.map((exercise) => (
               <option key={exercise.id} value={exercise.exerciseName}>
                 {exercise.exerciseName}
@@ -246,25 +282,23 @@ const AddTrening: React.FC = () => {
           <TextInput
             type="number"
             name="reps"
+            value={exerciseDetails.reps}
             placeholder="Reps"
-            value={exerciseDetails.reps == 0 ? "" : exerciseDetails.reps} // Dodajemy `value`
             onChange={handleExerciseChange}
           />
           <TextInput
             type="number"
             name="breakTime"
-            placeholder="Break Time (s)"
-            value={
-              exerciseDetails.breakTime == 0 ? "" : exerciseDetails.breakTime
-            } // Dodajemy `value`
+            value={exerciseDetails.breakTime}
+            placeholder="Break Time"
             onChange={handleExerciseChange}
           />
           {GenerateExercisesTablePerSeries()}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={saveAllExercises}>Save Series</Button>
-          <Button onClick={addExerciseToSeries}>Save Exercise</Button>
-          <Button color="gray" onClick={cancelAdding}>
+          <Button onClick={addExerciseToSeries}>Add Exercise</Button>
+          <Button onClick={saveAllExercises}>Save Exercises</Button>
+          <Button color="red" onClick={cancelAdding}>
             Cancel
           </Button>
         </Modal.Footer>

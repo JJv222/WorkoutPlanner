@@ -8,7 +8,6 @@ import com.JJv222.WorkoutPlannerBackend.Tables.Entities.Weight;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExerciseGetPojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExercisePostPojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Exercise.ExerciseTreningAddPojo;
-import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Trening.TreningGetTablePojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Trening.TreningPostPojo;
 import com.JJv222.WorkoutPlannerBackend.Tables.Pojo.Weight.WeightPostPojo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,24 +86,24 @@ public final class WorkoutService {
             pojo.setComment(x.getComment());
             pojo.setId(x.getId());
 
-            final List<ExerciseTrening> exerciseTrening = exerciseTreningRepository.findAllByTrening(x);
-            final List<ExerciseTreningAddPojo> exercises = new ArrayList<>();
-
-            exerciseTrening.forEach(z -> {
-                final ExerciseTreningAddPojo temp = new ExerciseTreningAddPojo();
-                temp.setExerciseName(z.getExercise().getName());
-                temp.setBreakTime(z.getBreakTime());
-                temp.setReps(z.getRepetitions());
-                temp.setSeries(z.getSeries());
-                exercises.add(temp);
-            });
-
-            pojo.setExercises(exercises);
-
+            findTreningExercises(x,pojo);
             result.add(pojo);
         });
 
         return result;
+    }
+
+    public TreningPostPojo getTrening(Integer id){
+        final Trening trening = treningRepository.findById(id).get();
+        final TreningPostPojo result = new TreningPostPojo();
+
+        result.setId(trening.getId());
+        result.setDate(trening.getDate().toString());
+        result.setSeriesBreak(trening.getSeriesBreak());
+        result.setComment(trening.getComment());
+
+        findTreningExercises(trening,result);
+        return  result;
     }
 
 
@@ -125,8 +124,23 @@ public final class WorkoutService {
             exerciseTrening.setBreakTime(x.getBreakTime());
             exerciseTreningRepository.save(exerciseTrening);
         });
-
-
         return "Trening added";
+    }
+
+
+    private void findTreningExercises(final Trening trening,final TreningPostPojo result ){
+        final List<ExerciseTrening> exerciseTrening = exerciseTreningRepository.findAllByTrening(trening);
+        final List<ExerciseTreningAddPojo> exercises = new ArrayList<>();
+
+        exerciseTrening.forEach(z -> {
+            final ExerciseTreningAddPojo temp = new ExerciseTreningAddPojo();
+            temp.setExerciseName(z.getExercise().getName());
+            temp.setBreakTime(z.getBreakTime());
+            temp.setReps(z.getRepetitions());
+            temp.setSeries(z.getSeries());
+            exercises.add(temp);
+        });
+
+        result.setExercises(exercises);
     }
 }

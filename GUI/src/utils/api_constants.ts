@@ -8,3 +8,4 @@ export const API_POST_EXERCISE = API_BASE_URL + "/addExercise";
 
 export const API_GET_TRENINGS = API_BASE_URL + "/trenings";
 export const API_ADD_TRENING = API_BASE_URL + "/addTrening";
+export const API_GET_TRENING = API_BASE_URL + "/trening"; // + /id

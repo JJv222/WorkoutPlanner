@@ -53,4 +53,10 @@ public class WorkoutController {
     public @ResponseBody String addTrening(@RequestBody TreningPostPojo trening) {
         return service.addTrening(trening);
     }
+
+    @GetMapping(path = "/trening/{id}")
+    public @ResponseBody TreningPostPojo getTrening(@PathVariable Integer id) {
+        return service.getTrening(id);
+    }
+
 }
