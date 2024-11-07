@@ -19,7 +19,7 @@ function App() {
     <Router>
       <div className="flex min-h-screen">
         {/* Sidebar */}
-        <aside className="h-dvh w-64" aria-label="Sidebar">
+        <aside className=" w-64" aria-label="Sidebar">
           <Sidebar>
             <Sidebar.Items>
               <Sidebar.ItemGroup>

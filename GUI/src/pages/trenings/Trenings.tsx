@@ -148,7 +148,6 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                 <Table.HeadCell>Name</Table.HeadCell>
                                 <Table.HeadCell>Repetitions</Table.HeadCell>
                                 <Table.HeadCell>Break Time (s)</Table.HeadCell>
-                                <Table.HeadCell>Actions</Table.HeadCell>
                               </Table.Head>
                               <Table.Body>
                                 {exercises.map((exercise, i) => (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
-import { TextInput, Button, Select, Modal } from "flowbite-react";
+import { TextInput, Button, Select, Modal, Table } from "flowbite-react";
 import { IExercise, IExerciseAdd, ITreningAdd } from "../../utils/types";
 import {
   API_ADD_TRENING,
@@ -25,14 +25,18 @@ const AddTrening: React.FC = () => {
     reps: 0,
     breakTime: 0,
   });
-  const [exerciseAdded, setExerciseAdded] = useState<IExerciseAdd[][]>([]);
-  const [exerciseAll, setExerciseAll] = useState<IExerciseAdd[]>([]);
+
+  const [exerciseAll, setExerciseAll] = useState<IExerciseAdd[][]>([]);
   const navigate = useNavigate();
 
   const location = useLocation();
   const isEdit = location.state?.isEdit || false;
   const treningId = location.state?.treningId || null;
 
+  //Edit modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  ///
   useEffect(() => {
     const getExercises = async () => {
       try {
@@ -56,7 +60,6 @@ const AddTrening: React.FC = () => {
       const fetchedTrening: ITreningAdd = await fetchData(uri, {});
       setTreningDate(fetchedTrening.date);
       setSeriesBreak(fetchedTrening.seriesBreak);
-      setExerciseAll(fetchedTrening.exercises);
 
       const maxSeries = fetchedTrening.exercises.reduce((prev, current) => {
         return prev.series > current.series ? prev : current;
@@ -73,7 +76,7 @@ const AddTrening: React.FC = () => {
 
         groupedExercises[seriesIndex].push(exercise);
       });
-      setExerciseAdded(groupedExercises);
+      setExerciseAll(groupedExercises);
     } catch (e) {
       console.error("Error fetching trening data:", e);
     }
@@ -89,6 +92,21 @@ const AddTrening: React.FC = () => {
     setCurrentSeries(null);
   };
 
+  const openEditModal = (exerciseIndex: number, seriesNumber: number) => {
+    setCurrentSeries(seriesNumber);
+    const temp: IExerciseAdd = exerciseAll[seriesNumber][exerciseIndex];
+    setExerciseDetails(temp);
+    setExitedIndex(exerciseIndex);
+
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentSeries(null);
+    setExitedIndex(null);
+  };
+
   const handleExerciseChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -100,7 +118,7 @@ const AddTrening: React.FC = () => {
     if (!currentSeries) return;
     const exerciseWithSeries = { ...exerciseDetails, series: currentSeries };
 
-    setExerciseAdded((prev) => {
+    setExerciseAll((prev) => {
       const updatedExercises = [...prev];
       updatedExercises[currentSeries - 1] = [
         ...(updatedExercises[currentSeries - 1] || []),
@@ -117,13 +135,40 @@ const AddTrening: React.FC = () => {
     });
   };
 
+  const [exitedIndex, setExitedIndex] = useState<number | null>(null);
+
+  const saveEdited = () => {
+    if (currentSeries == null) return;
+    if (exitedIndex == null) return;
+    // console.log("po");
+    // console.log(currentSeries);
+    // console.log(exitedIndex);
+    // console.log(exerciseAll);
+    exerciseAll[currentSeries][exitedIndex] = exerciseDetails;
+    closeEditModal();
+  };
+
+  const saveChanges = async () => {
+    // console.log("po edycji");
+    // console.log(exerciseAll);
+
+    const newTraining = {
+      date: treningDate,
+      seriesBreak: seriesBreak,
+      seriesAmount: seriesAmmount,
+      exercises: exerciseAll.flat(),
+    };
+    try {
+      await postData(API_ADD_TRENING, newTraining);
+    } catch (error) {
+      console.error("Failed to save training:", error);
+    }
+
+    navigate("/trenings");
+  };
+
   const saveAllExercises = () => {
     if (!currentSeries) return;
-
-    setExerciseAll((prev) => [
-      ...prev,
-      ...(exerciseAdded[currentSeries - 1] || []),
-    ]);
 
     setExerciseDetails({
       exerciseName: "",
@@ -141,7 +186,6 @@ const AddTrening: React.FC = () => {
       reps: 0,
       breakTime: 0,
     });
-    setExerciseAdded([]);
     closeModal();
   };
 
@@ -150,7 +194,7 @@ const AddTrening: React.FC = () => {
       date: treningDate,
       seriesBreak: seriesBreak,
       seriesAmount: seriesAmmount,
-      exercises: exerciseAll,
+      exercises: exerciseAll.flat(),
     };
 
     try {
@@ -181,7 +225,7 @@ const AddTrening: React.FC = () => {
 
   const GenerateExercisesTablePerSeries = () => {
     if (!currentSeries) return null;
-    const currentExercises = exerciseAdded[currentSeries - 1] || [];
+    const currentExercises = exerciseAll[currentSeries - 1] || [];
 
     return (
       <table className="mt-4 w-full">
@@ -257,10 +301,10 @@ const AddTrening: React.FC = () => {
         {GenerateExerciseButtons()}
         <Button
           className="mt-4 justify-center px-10 py-2"
-          type="submit"
-          onClick={SaveTraining}
+          //type="submit"
+          onClick={isEdit ? saveChanges : SaveTraining}
         >
-          "Save Training"
+          {isEdit ? "Save Changes" : "Save Trening"}
         </Button>
       </form>
       <Modal show={isModalOpen} onClose={closeModal}>
@@ -299,10 +343,91 @@ const AddTrening: React.FC = () => {
           <Button onClick={addExerciseToSeries}>Add Exercise</Button>
           <Button onClick={saveAllExercises}>Save Exercises</Button>
           <Button color="red" onClick={cancelAdding}>
-            Cancel
+            Clear Serries
           </Button>
         </Modal.Footer>
       </Modal>
+      {/*Modal for updating*/}
+      <Modal show={isEditModalOpen} onClose={closeEditModal}>
+        <Modal.Header>
+          Edit exersises in the trening session {currentSeries}
+        </Modal.Header>
+        <Modal.Body>
+          <Select
+            name="exerciseName"
+            value={exerciseDetails.exerciseName}
+            onChange={handleExerciseChange}
+            className="block w-full"
+          >
+            <option value="">Select an exercise</option>
+            {exercises.map((exercise) => (
+              <option key={exercise.id} value={exercise.exerciseName}>
+                {exercise.exerciseName}
+              </option>
+            ))}
+          </Select>
+          <TextInput
+            type="number"
+            name="reps"
+            value={exerciseDetails.reps}
+            placeholder="Reps"
+            onChange={handleExerciseChange}
+          />
+          <TextInput
+            type="number"
+            name="breakTime"
+            value={exerciseDetails.breakTime}
+            placeholder="Break Time"
+            onChange={handleExerciseChange}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={saveEdited}>Save Changes</Button>
+          <Button color="red" onClick={cancelAdding}>
+            Clear Series
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      {/*info table*/}
+      <>
+        {exerciseAll.map((seriesExercises, seriesIndex) => (
+          <div key={seriesIndex} className="mt-4">
+            <h1 className="mb-4 text-center text-2xl font-semibold text-gray-900 dark:text-white ">
+              Series {seriesIndex + 1}
+            </h1>
+            <Table className="w-full">
+              <Table.Head>
+                <Table.HeadCell>Name</Table.HeadCell>
+                <Table.HeadCell>Repetitions</Table.HeadCell>
+                <Table.HeadCell>Break Time (s)</Table.HeadCell>
+                <Table.HeadCell>Actions</Table.HeadCell>
+              </Table.Head>
+              <Table.Body>
+                {seriesExercises.map((exercise, exerciseIndex) => (
+                  <Table.Row
+                    key={`${seriesIndex}-${exerciseIndex}`}
+                    className="bg-gray-50 dark:bg-gray-700"
+                  >
+                    <Table.Cell>{exercise.exerciseName}</Table.Cell>
+                    <Table.Cell>{exercise.reps}</Table.Cell>
+                    <Table.Cell>{exercise.breakTime}</Table.Cell>
+                    <button
+                      key={exerciseIndex}
+                      type="button"
+                      onClick={() =>
+                        openEditModal(exerciseIndex, exercise.series - 1)
+                      }
+                      className="me-2 mt-4 rounded-lg bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-800"
+                    >
+                      Update Exercise
+                    </button>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
+        ))}
+      </>
     </div>
   );
 };
