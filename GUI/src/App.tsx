@@ -13,6 +13,7 @@ import {
 import Exercises from "./pages/exercises/Exercises";
 import Trenings from "./pages/trenings/Trenings";
 import AddTrening from "./pages/trenings/AddTrening";
+import MainPage from "./pages/main/MainPage";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <DarkThemeToggle />
 
           <Routes>
+            <Route path="/" element={<MainPage />} />
             <Route path="/trenings" element={<Trenings />} />
             <Route path="/weights" element={<Weights />} />
             <Route path="/exercises" element={<Exercises />} />

@@ -9,11 +9,21 @@ export default function Component() {
   return (
     <Footer container>
       <FooterCopyright href="#" by="Flowbite™" year={2024} />
+      <Footer.Brand
+        href="https://github.com/JJv222"
+        src="images/github-mark.svg"
+        alt="GitHub Logo"
+        name="Profile"
+      />
+      <Footer.Brand
+        href="https://www.linkedin.com/in/jakub-andrzejewski-6a96042a3/"
+        src="images/LI-Logo.png"
+        alt="LinkedIn Logo"
+        name="Profile"
+      />
       <FooterLinkGroup>
-        <FooterLink href="https://www.linkedin.com/in/jakub-andrzejewski-6a96042a3/">
-          LinkedIn
-        </FooterLink>
-        <FooterLink href="https://github.com/JJv222">GitHub</FooterLink>
+        <FooterLink href=""></FooterLink>
+        <FooterLink href=""></FooterLink>
       </FooterLinkGroup>
     </Footer>
   );

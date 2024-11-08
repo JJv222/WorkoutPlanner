@@ -4,6 +4,7 @@ import { API_GET_TRENINGS } from "../../utils/api_constants";
 import { fetchData } from "../../utils/api";
 import { IExerciseAdd, ITreningAdd } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
+import { PaginationMy } from "../components/PaginationComponent";
 
 const Trenings: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ const Trenings: React.FC = () => {
     new Map(),
   );
   const [loading, setLoading] = useState<boolean>(true);
+
+  //pagination
+  const itemsPerPage = 10;
+  const [pagesAmmount, setPagesAmmount] = useState<number>(1);
+
+  ///
 
   const handleAddTrening = () => {
     navigate("/add-trening", { state: { isEdit: false } });
@@ -33,7 +40,11 @@ const Trenings: React.FC = () => {
     };
     getData();
   }, []);
-
+  useEffect(() => {
+    if (data && data.length > 0) {
+      setPagesAmmount(Math.ceil(data.length / itemsPerPage));
+    }
+  }, [data, itemsPerPage]);
   // This function groups the exercises from the specified training by series
   const groupData = (id: number) => {
     let result: Map<string, IExerciseAdd[]> = new Map();
@@ -68,6 +79,8 @@ const Trenings: React.FC = () => {
           groupData={groupData}
           groupedData={groupedData}
           handleEditTrening={handleEditTrening}
+          pagesAmmount={pagesAmmount}
+          itemsPerPage={itemsPerPage}
         />
       )}
     </div>
@@ -79,6 +92,8 @@ interface ExerciseTableProps {
   groupData: (id: number) => void;
   groupedData: Map<string, IExerciseAdd[]>;
   handleEditTrening: (id: number) => void;
+  pagesAmmount: number;
+  itemsPerPage: number;
 }
 
 const ExerciseTable: React.FC<ExerciseTableProps> = ({
@@ -86,8 +101,19 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
   groupData,
   groupedData,
   handleEditTrening,
+  pagesAmmount,
+  itemsPerPage,
 }) => {
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [maxIndex, setMaxIndex] = useState(itemsPerPage - 1);
+  const [minIndex, setMinIndex] = useState(0);
+
+  const onPageChange = (page: number) => {
+    setMaxIndex(page * itemsPerPage - 1);
+    setMinIndex((page - 1) * itemsPerPage);
+    setCurrentPage(page);
+  };
 
   const toggleRow = (id: number) => {
     if (expandedRowId !== id) {
@@ -109,7 +135,7 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
           <Table.HeadCell className="px-6 py-4 text-lg">Actions</Table.HeadCell>
         </Table.Head>
         <Table.Body className="divide-y">
-          {data.map((entry) => (
+          {data.slice(minIndex, maxIndex + 1).map((entry) => (
             <React.Fragment key={entry.id}>
               {/* Main Training Row */}
               <Table.Row
@@ -160,8 +186,7 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                     </Table.Cell>
                                     <Table.Cell>{exercise.reps}</Table.Cell>
                                     <Table.Cell>
-                                      {" "}
-                                      {exercise.breakTime}{" "}
+                                      {exercise.breakTime}
                                     </Table.Cell>
                                   </Table.Row>
                                 ))}
@@ -178,6 +203,11 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
           ))}
         </Table.Body>
       </Table>
+      <PaginationMy
+        currentPage={currentPage}
+        pagesAmmount={pagesAmmount}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 };
