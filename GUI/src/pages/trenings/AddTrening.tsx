@@ -211,10 +211,7 @@ const AddTrening: React.FC = () => {
     return buttons;
   };
   const displayWeight = (weight: number) => {
-    if (weight === null || weight === 0) {
-      return "";
-    }
-    return " " + weight + "kg";
+    return weight + " kg";
   };
   const GenerateExercisesTablePerSeries = () => {
     if (!currentSeries) return null;
@@ -233,7 +230,8 @@ const AddTrening: React.FC = () => {
           {currentExercises.map((exercise, index) => (
             <tr key={index}>
               <td>{exercise.exerciseName}</td>
-              <td>{exercise.reps + displayWeight(exercise.weights)}</td>
+              <td>{exercise.reps}</td>
+              <td>{exercise.weights + "kg"}</td>
               <td>{exercise.breakTime}</td>
             </tr>
           ))}
@@ -356,6 +354,7 @@ const AddTrening: React.FC = () => {
           Edit exersises in the trening session {currentSeries}
         </Modal.Header>
         <Modal.Body>
+          <label>Exercise</label>
           <Select
             name="exerciseName"
             value={exerciseDetails.exerciseName}
@@ -369,6 +368,7 @@ const AddTrening: React.FC = () => {
               </option>
             ))}
           </Select>
+          <label>Repetitions</label>
           <TextInput
             type="number"
             name="reps"
@@ -376,6 +376,7 @@ const AddTrening: React.FC = () => {
             placeholder="Reps"
             onChange={handleExerciseChange}
           />
+          <label>Break Time (s)</label>
           <TextInput
             type="number"
             name="breakTime"
@@ -383,6 +384,7 @@ const AddTrening: React.FC = () => {
             placeholder="Break Time"
             onChange={handleExerciseChange}
           />
+          <label>Weights (kg) - leave empty if you don't use weights</label>
           <TextInput
             type="number"
             name="weights"
@@ -409,6 +411,7 @@ const AddTrening: React.FC = () => {
               <Table.Head>
                 <Table.HeadCell>Name</Table.HeadCell>
                 <Table.HeadCell>Repetitions</Table.HeadCell>
+                <Table.HeadCell>Weights (kg)</Table.HeadCell>
                 <Table.HeadCell>Break Time (s)</Table.HeadCell>
                 <Table.HeadCell>Actions</Table.HeadCell>
               </Table.Head>
@@ -419,9 +422,8 @@ const AddTrening: React.FC = () => {
                     className="bg-gray-50 dark:bg-gray-700"
                   >
                     <Table.Cell>{exercise.exerciseName}</Table.Cell>
-                    <Table.Cell>
-                      {exercise.reps + displayWeight(exercise.weights)}
-                    </Table.Cell>
+                    <Table.Cell>{exercise.reps}</Table.Cell>
+                    <Table.Cell>{displayWeight(exercise.weights)}</Table.Cell>
                     <Table.Cell>{exercise.breakTime}</Table.Cell>
                     <button
                       key={exerciseIndex}
