@@ -4,7 +4,6 @@ import { API_GET_TRENINGS } from "../../utils/api_constants";
 import { fetchData } from "../../utils/api";
 import { IExerciseAdd, ITreningAdd } from "../../utils/types";
 import { useNavigate } from "react-router-dom";
-import { PaginationMy } from "../components/PaginationComponent";
 
 const Trenings: React.FC = () => {
   const navigate = useNavigate();
@@ -14,11 +13,9 @@ const Trenings: React.FC = () => {
   );
   const [loading, setLoading] = useState<boolean>(true);
 
-  //pagination
-  const itemsPerPage = 10;
-  const [pagesAmmount, setPagesAmmount] = useState<number>(1);
-
-  ///
+  // Paginacja
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
   const handleAddTrening = () => {
     navigate("/add-trening", { state: { isEdit: false } });
@@ -40,12 +37,8 @@ const Trenings: React.FC = () => {
     };
     getData();
   }, []);
-  useEffect(() => {
-    if (data && data.length > 0) {
-      setPagesAmmount(Math.ceil(data.length / itemsPerPage));
-    }
-  }, [data, itemsPerPage]);
-  // This function groups the exercises from the specified training by series
+
+  // Grupa ćwiczeń
   const groupData = (id: number) => {
     let result: Map<string, IExerciseAdd[]> = new Map();
     const trening = data.find((x) => x.id === id);
@@ -57,7 +50,26 @@ const Trenings: React.FC = () => {
         : result.set(series, [exercise]);
     });
 
-    setGroupedData(result); // Save the grouped exercises for display in the mini table
+    setGroupedData(result);
+  };
+
+  // Paginacja
+  const paginatedData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setItemsPerPage(Number(event.target.value));
+    setCurrentPage(1);
   };
 
   return (
@@ -65,55 +77,70 @@ const Trenings: React.FC = () => {
       <h1 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
         Trenings
       </h1>
-      <div>
-        <Button onClick={handleAddTrening} className="mb-4 p-2">
-          Add new Trening record
-        </Button>
-      </div>
+      <Button onClick={handleAddTrening} className="mb-4">
+        Add new Trening
+      </Button>
+
       {loading ? (
-        <p className="mb-4 text-gray-700 dark:text-gray-300">Loading...</p>
+        <p>Loading...</p>
       ) : (
-        // Pass both groupData and groupedData as props to ExerciseTable
-        <ExerciseTable
-          data={data}
-          groupData={groupData}
-          groupedData={groupedData}
-          handleEditTrening={handleEditTrening}
-          pagesAmmount={pagesAmmount}
-          itemsPerPage={itemsPerPage}
-        />
+        <>
+          <div className="mb-4">
+            <label
+              htmlFor="items-per-page"
+              className="mr-2 text-gray-700 dark:text-gray-300"
+            >
+              Items per page:
+            </label>
+            <select
+              id="items-per-page"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="rounded-md border"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+          <ExerciseTable
+            data={paginatedData}
+            groupData={groupData}
+            groupedData={groupedData}
+            handleEditTrening={handleEditTrening}
+          />
+          <div className="mt-4">
+            <span className="mr-2 text-gray-700 dark:text-gray-300">
+              Pages:
+            </span>
+            {pageNumbers.map((pageNumber) => (
+              <button
+                key={pageNumber}
+                onClick={() => handlePageChange(pageNumber)}
+                className={`mx-1 rounded-md px-3 py-1 ${
+                  currentPage === pageNumber
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white"
+                }`}
+              >
+                {pageNumber}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
-interface ExerciseTableProps {
+const ExerciseTable: React.FC<{
   data: ITreningAdd[];
   groupData: (id: number) => void;
   groupedData: Map<string, IExerciseAdd[]>;
   handleEditTrening: (id: number) => void;
-  pagesAmmount: number;
-  itemsPerPage: number;
-}
-
-const ExerciseTable: React.FC<ExerciseTableProps> = ({
-  data,
-  groupData,
-  groupedData,
-  handleEditTrening,
-  pagesAmmount,
-  itemsPerPage,
-}) => {
+}> = ({ data, groupData, groupedData, handleEditTrening }) => {
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [maxIndex, setMaxIndex] = useState(itemsPerPage - 1);
-  const [minIndex, setMinIndex] = useState(0);
-
-  const onPageChange = (page: number) => {
-    setMaxIndex(page * itemsPerPage - 1);
-    setMinIndex((page - 1) * itemsPerPage);
-    setCurrentPage(page);
-  };
 
   const toggleRow = (id: number) => {
     if (expandedRowId !== id) {
@@ -130,63 +157,52 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
         className="rounded-lg border-none dark:bg-gray-800"
       >
         <Table.Head>
-          <Table.HeadCell className="px-6 py-4 text-lg">Id</Table.HeadCell>
-          <Table.HeadCell className="px-6 py-4 text-lg">Date</Table.HeadCell>
-          <Table.HeadCell className="px-6 py-4 text-lg">Actions</Table.HeadCell>
+          <Table.HeadCell>Id</Table.HeadCell>
+          <Table.HeadCell>Date</Table.HeadCell>
+          <Table.HeadCell>Actions</Table.HeadCell>
         </Table.Head>
-        <Table.Body className="divide-y">
-          {data.slice(minIndex, maxIndex + 1).map((entry) => (
+        <Table.Body>
+          {data.map((entry) => (
             <React.Fragment key={entry.id}>
-              {/* Main Training Row */}
               <Table.Row
                 onClick={() => toggleRow(entry.id)}
-                className="cursor-pointer bg-white dark:border-gray-700 dark:bg-gray-800"
+                className="cursor-pointer"
               >
-                <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
-                  {entry.id}
-                </Table.Cell>
-                <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
-                  {entry.date}
-                </Table.Cell>
-                <Table.Cell className="whitespace-nowrap px-6 py-4">
-                  <Button
-                    onClick={() => handleEditTrening(entry.id)}
-                    className="flex w-40 items-center justify-center text-center"
-                  >
-                    Copy
+                <Table.Cell>{entry.id}</Table.Cell>
+                <Table.Cell>{entry.date}</Table.Cell>
+                <Table.Cell>
+                  <Button onClick={() => handleEditTrening(entry.id)}>
+                    Edit
                   </Button>
                 </Table.Cell>
               </Table.Row>
-
-              {/* Expanded Exercises Row */}
               {expandedRowId === entry.id && (
                 <Table.Row>
-                  <Table.Cell colSpan={3} className="p-4">
-                    <div className="overflow-x-auto">
+                  <Table.Cell colSpan={3}>
+                    <div>
                       {Array.from(groupedData.entries()).map(
                         ([series, exercises], index) => (
-                          <div key={index} className="mb-4">
-                            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-                              Series: {series}
-                            </h3>
+                          <div key={index}>
+                            <h3>Series {series}</h3>
                             <Table>
                               <Table.Head>
-                                <Table.HeadCell>Name</Table.HeadCell>
-                                <Table.HeadCell>Repetitions</Table.HeadCell>
-                                <Table.HeadCell>Break Time (s)</Table.HeadCell>
+                                <Table.HeadCell>Exercise</Table.HeadCell>
+                                <Table.HeadCell>Reps</Table.HeadCell>
+                                <Table.HeadCell>Weights</Table.HeadCell>
+                                <Table.HeadCell>Break Time</Table.HeadCell>
                               </Table.Head>
                               <Table.Body>
                                 {exercises.map((exercise, i) => (
-                                  <Table.Row
-                                    key={i}
-                                    className="bg-gray-50 dark:bg-gray-700"
-                                  >
+                                  <Table.Row key={i}>
                                     <Table.Cell>
                                       {exercise.exerciseName}
                                     </Table.Cell>
                                     <Table.Cell>{exercise.reps}</Table.Cell>
                                     <Table.Cell>
-                                      {exercise.breakTime}
+                                      {exercise.weights} kg
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                      {exercise.breakTime} s
                                     </Table.Cell>
                                   </Table.Row>
                                 ))}
@@ -203,11 +219,6 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
           ))}
         </Table.Body>
       </Table>
-      <PaginationMy
-        currentPage={currentPage}
-        pagesAmmount={pagesAmmount}
-        onPageChange={onPageChange}
-      />
     </div>
   );
 };

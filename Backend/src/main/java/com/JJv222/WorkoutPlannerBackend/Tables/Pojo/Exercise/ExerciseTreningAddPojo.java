@@ -5,6 +5,15 @@ public class ExerciseTreningAddPojo {
     private Integer series;
     private Integer reps;
     private Integer breakTime;
+    private Integer weights;
+
+    public void setWeights(Integer weights) {
+        this.weights = weights;
+    }
+
+    public Integer getWeights() {
+        return weights;
+    }
 
     public void setExerciseName(String exerciseName) {
         this.exerciseName = exerciseName;

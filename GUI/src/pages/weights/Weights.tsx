@@ -15,11 +15,21 @@ const Weights: React.FC = () => {
     date: "",
   });
 
-  //pagination
-  const itemsPerPage = 2;
-  const [pagesAmmount, setPagesAmmount] = useState<number>(1);
+  // Paginacja
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
-  ///
+  const handleAddWeight = async () => {
+    try {
+      await postData(API_POST_WEIGHT, newWeight);
+      setModalOpen(false);
+      setNewWeight({ id: 0, weight: 0, date: "" });
+      const fetchedData = await fetchData(API_GET_WEIGHTS, {});
+      setData(fetchedData);
+    } catch (error) {
+      console.error("Failed to add weight:", error);
+    }
+  };
 
   useEffect(() => {
     const getData = async () => {
@@ -34,23 +44,23 @@ const Weights: React.FC = () => {
     getData();
   }, []);
 
-  useEffect(() => {
-    if (data && data.length > 0) {
-      setPagesAmmount(Math.ceil(data.length / itemsPerPage));
-    }
-  }, [data, itemsPerPage]);
+  const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  const handleAddWeight = async () => {
-    try {
-      await postData(API_POST_WEIGHT, newWeight);
-      setModalOpen(false);
-      setNewWeight({ id: 0, weight: 0, date: "" });
-      const fetchedData = await fetchData(API_GET_WEIGHTS, {});
-      setData(fetchedData);
-    } catch (error) {
-      console.error("Failed to add weight:", error);
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
+
+  const handleItemsPerPageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    setItemsPerPage(Number(event.target.value));
+    setCurrentPage(1); // Resetuje stronę do pierwszej po zmianie liczby elementów na stronę
+  };
+
+  const paginatedData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
   return (
     <div className="container overflow-x-auto bg-white p-6 shadow-lg dark:bg-gray-800">
@@ -99,10 +109,30 @@ const Weights: React.FC = () => {
         <p className="mb-4 text-gray-700 dark:text-gray-300">Loading...</p>
       ) : (
         <>
+          <div className="mb-4">
+            <label
+              htmlFor="items-per-page"
+              className="mr-2 text-gray-700 dark:text-gray-300"
+            >
+              Items per page:
+            </label>
+            <select
+              id="items-per-page"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="rounded-md border"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
           <WeightTable
-            data={data}
-            pagesAmmount={pagesAmmount}
-            itemsPerPage={itemsPerPage}
+            data={paginatedData}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
         </>
       )}
@@ -112,25 +142,17 @@ const Weights: React.FC = () => {
 
 interface IWeightTableProps {
   data: IWeight[];
-  pagesAmmount: number;
-  itemsPerPage: number;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 const WeightTable: React.FC<IWeightTableProps> = ({
   data,
-  pagesAmmount,
-  itemsPerPage,
+  currentPage,
+  totalPages,
+  onPageChange,
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [maxIndex, setMaxIndex] = useState(itemsPerPage - 1);
-  const [minIndex, setMinIndex] = useState(0);
-
-  const onPageChange = (page: number) => {
-    setMaxIndex(page * itemsPerPage - 1);
-    setMinIndex((page - 1) * itemsPerPage);
-    setCurrentPage(page);
-  };
-
   return (
     <div className="overflow-x-auto">
       <Table
@@ -139,32 +161,39 @@ const WeightTable: React.FC<IWeightTableProps> = ({
         className="rounded-lg border-none dark:bg-gray-800"
       >
         <Table.Head>
-          <Table.HeadCell className="px-6 py-4 text-lg">Date</Table.HeadCell>
-          <Table.HeadCell className="px-6 py-4 text-lg">
-            Weight (kg)
-          </Table.HeadCell>
+          <Table.HeadCell>Date</Table.HeadCell>
+          <Table.HeadCell>Weight (kg)</Table.HeadCell>
         </Table.Head>
-        <Table.Body className="divide-y">
-          {data.slice(minIndex, maxIndex + 1).map((entry) => (
+        <Table.Body>
+          {data.map((entry) => (
             <Table.Row
               key={entry.id}
               className="bg-white dark:border-gray-700 dark:bg-gray-800"
             >
-              <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
-                {entry.date}
-              </Table.Cell>
-              <Table.Cell className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
-                {entry.weight}
-              </Table.Cell>
+              <Table.Cell>{entry.date}</Table.Cell>
+              <Table.Cell>{entry.weight}</Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
       </Table>
-      <PaginationMy
-        currentPage={currentPage}
-        pagesAmmount={pagesAmmount}
-        onPageChange={onPageChange}
-      />
+      <div className="mt-4">
+        <span className="mr-2 text-gray-700 dark:text-gray-300">Pages:</span>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+          (pageNumber) => (
+            <button
+              key={pageNumber}
+              onClick={() => onPageChange(pageNumber)}
+              className={`mx-1 rounded-md px-3 py-1 ${
+                currentPage === pageNumber
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white"
+              }`}
+            >
+              {pageNumber}
+            </button>
+          ),
+        )}
+      </div>
     </div>
   );
 };

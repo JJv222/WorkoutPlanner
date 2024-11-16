@@ -18,6 +18,9 @@ public final class ExerciseTrening {
     @Column(name="break_time")
     private Integer breakTime;
 
+    @Column(name = "weights", nullable = true)
+    private Integer weights;
+
     @ManyToOne
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
@@ -35,6 +38,7 @@ public final class ExerciseTrening {
                 ", breakTime=" + breakTime +
                 ", exercise=" + exercise +
                 ", trening=" + trening +
+                ", weights=" + weights +
                 '}';
     }
 
@@ -52,6 +56,10 @@ public final class ExerciseTrening {
 
     public void setBreakTime(Integer breakTime) {
         this.breakTime = breakTime;
+    }
+
+    public void setWeights(Integer weights) {
+        this.weights = weights;
     }
 
     public void setExercise(Exercise exercise) {
@@ -76,6 +84,10 @@ public final class ExerciseTrening {
 
     public Integer getBreakTime() {
         return breakTime;
+    }
+
+    public Integer getWeights() {
+        return weights;
     }
 
     public Exercise getExercise() {
