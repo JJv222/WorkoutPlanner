@@ -118,6 +118,7 @@ public final class WorkoutService {
             final Exercise exercise = exerciseRepository.findByName(x.getExerciseName());
             final ExerciseTrening exerciseTrening = new ExerciseTrening();
             exerciseTrening.setExercise(exercise);
+            exerciseTrening.setWeights(x.getWeights());
             exerciseTrening.setTrening(treningEntity);
             exerciseTrening.setSeries(x.getSeries());
             exerciseTrening.setRepetitions(x.getReps());
@@ -136,6 +137,7 @@ public final class WorkoutService {
             final ExerciseTreningAddPojo temp = new ExerciseTreningAddPojo();
             temp.setExerciseName(z.getExercise().getName());
             temp.setBreakTime(z.getBreakTime());
+            temp.setWeights(z.getWeights());
             temp.setReps(z.getRepetitions());
             temp.setSeries(z.getSeries());
             exercises.add(temp);

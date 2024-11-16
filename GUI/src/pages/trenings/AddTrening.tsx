@@ -24,6 +24,7 @@ const AddTrening: React.FC = () => {
     series: 0,
     reps: 0,
     breakTime: 0,
+    weights: 0,
   });
 
   const [exerciseAll, setExerciseAll] = useState<IExerciseAdd[][]>([]);
@@ -127,11 +128,16 @@ const AddTrening: React.FC = () => {
       return updatedExercises;
     });
 
+    clearExerciseDetails();
+  };
+
+  const clearExerciseDetails = () => {
     setExerciseDetails({
       exerciseName: "",
       series: 0,
       reps: 0,
       breakTime: 0,
+      weights: 0,
     });
   };
 
@@ -140,18 +146,11 @@ const AddTrening: React.FC = () => {
   const saveEdited = () => {
     if (currentSeries == null) return;
     if (exitedIndex == null) return;
-    // console.log("po");
-    // console.log(currentSeries);
-    // console.log(exitedIndex);
-    // console.log(exerciseAll);
     exerciseAll[currentSeries][exitedIndex] = exerciseDetails;
     closeEditModal();
   };
 
   const saveChanges = async () => {
-    // console.log("po edycji");
-    // console.log(exerciseAll);
-
     const newTraining = {
       date: treningDate,
       seriesBreak: seriesBreak,
@@ -169,23 +168,12 @@ const AddTrening: React.FC = () => {
 
   const saveAllExercises = () => {
     if (!currentSeries) return;
-
-    setExerciseDetails({
-      exerciseName: "",
-      series: 0,
-      reps: 0,
-      breakTime: 0,
-    });
+    clearExerciseDetails();
     closeModal();
   };
 
   const cancelAdding = () => {
-    setExerciseDetails({
-      exerciseName: "",
-      series: 0,
-      reps: 0,
-      breakTime: 0,
-    });
+    clearExerciseDetails();
     closeModal();
   };
 
@@ -222,7 +210,12 @@ const AddTrening: React.FC = () => {
     }
     return buttons;
   };
-
+  const displayWeight = (weight: number) => {
+    if (weight === null || weight === 0) {
+      return "";
+    }
+    return " " + weight + "kg";
+  };
   const GenerateExercisesTablePerSeries = () => {
     if (!currentSeries) return null;
     const currentExercises = exerciseAll[currentSeries - 1] || [];
@@ -240,7 +233,7 @@ const AddTrening: React.FC = () => {
           {currentExercises.map((exercise, index) => (
             <tr key={index}>
               <td>{exercise.exerciseName}</td>
-              <td>{exercise.reps}</td>
+              <td>{exercise.reps + displayWeight(exercise.weights)}</td>
               <td>{exercise.breakTime}</td>
             </tr>
           ))}
@@ -323,6 +316,7 @@ const AddTrening: React.FC = () => {
               </option>
             ))}
           </Select>
+          <label>Repetitions</label>
           <TextInput
             type="number"
             name="reps"
@@ -330,11 +324,20 @@ const AddTrening: React.FC = () => {
             placeholder="Reps"
             onChange={handleExerciseChange}
           />
+          <label>Break Time (s)</label>
           <TextInput
             type="number"
             name="breakTime"
             value={exerciseDetails.breakTime}
             placeholder="Break Time"
+            onChange={handleExerciseChange}
+          />
+          <label>Weights (kg) - leave empty if you don't use weights</label>
+          <TextInput
+            type="number"
+            name="weights"
+            value={exerciseDetails.weights}
+            placeholder="Weights"
             onChange={handleExerciseChange}
           />
           {GenerateExercisesTablePerSeries()}
@@ -380,6 +383,13 @@ const AddTrening: React.FC = () => {
             placeholder="Break Time"
             onChange={handleExerciseChange}
           />
+          <TextInput
+            type="number"
+            name="weights"
+            value={exerciseDetails.weights}
+            placeholder="Weights"
+            onChange={handleExerciseChange}
+          />
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={saveEdited}>Save Changes</Button>
@@ -409,7 +419,9 @@ const AddTrening: React.FC = () => {
                     className="bg-gray-50 dark:bg-gray-700"
                   >
                     <Table.Cell>{exercise.exerciseName}</Table.Cell>
-                    <Table.Cell>{exercise.reps}</Table.Cell>
+                    <Table.Cell>
+                      {exercise.reps + displayWeight(exercise.weights)}
+                    </Table.Cell>
                     <Table.Cell>{exercise.breakTime}</Table.Cell>
                     <button
                       key={exerciseIndex}

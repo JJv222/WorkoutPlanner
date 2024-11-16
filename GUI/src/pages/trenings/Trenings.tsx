@@ -122,6 +122,13 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
     setExpandedRowId(expandedRowId === id ? null : id);
   };
 
+  const displayWeight = (weight: number) => {
+    if (weight === null || weight === 0) {
+      return "";
+    }
+    return " " + weight + "kg";
+  };
+
   return (
     <div className="overflow-x-auto">
       <Table
@@ -184,7 +191,10 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                     <Table.Cell>
                                       {exercise.exerciseName}
                                     </Table.Cell>
-                                    <Table.Cell>{exercise.reps}</Table.Cell>
+                                    <Table.Cell>
+                                      {exercise.reps +
+                                        displayWeight(exercise.weights)}
+                                    </Table.Cell>
                                     <Table.Cell>
                                       {exercise.breakTime}
                                     </Table.Cell>

@@ -11,13 +11,6 @@ export interface IExercise {
   description: string;
 }
 
-export interface IExercise {
-  id: number;
-  exerciseName: string;
-  muscleGroupName: string;
-  description: string;
-}
-
 export interface ITreningAdd {
   id: number;
   date: string;
@@ -30,4 +23,5 @@ export interface IExerciseAdd {
   series: number;
   reps: number;
   breakTime: number;
+  weights: number;
 }
